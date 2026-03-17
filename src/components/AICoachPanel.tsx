@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface CoachData {
   suggestion: string;
@@ -8,7 +8,7 @@ interface CoachData {
   stats: {
     rideCount: number;
     totalElevation: number;
-    avgPace: number;
+    avgSpeed: number;
   };
 }
 
@@ -17,11 +17,11 @@ export default function AICoachPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSuggestion = async () => {
+  const fetchSuggestion = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/ai-coach");
+      const res = await fetch("/api/ai-coach", { cache: "no-store" });
       if (!res.ok) throw new Error("请求失败");
       const json = await res.json();
       setData(json);
@@ -30,11 +30,11 @@ export default function AICoachPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSuggestion();
-  }, []);
+  }, [fetchSuggestion]);
 
   return (
     <div className="mx-3 mb-4 rounded-lg border border-gray-700 bg-gray-800/50 p-3">
@@ -85,14 +85,14 @@ export default function AICoachPanel() {
             </div>
             <div>
               <p className="text-xs font-medium text-white">
-                {data.stats.avgPace.toFixed(1)}
+                {data.stats.avgSpeed.toFixed(1)}
               </p>
               <p className="text-[10px] text-gray-500">均速 km/h</p>
             </div>
           </div>
           {data.source === "mock" && (
             <p className="mt-1.5 text-[10px] text-gray-600 text-right">
-              模拟建议 · 连接本地 AI 后自动切换
+              模拟建议 · 设置 LLM_URL 后自动切换
             </p>
           )}
         </>
