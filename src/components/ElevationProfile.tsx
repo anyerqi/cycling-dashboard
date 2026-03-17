@@ -1,13 +1,9 @@
 'use client';
 
 import { useState, useCallback, useMemo, useId } from 'react';
+import { TrackPoint } from '@/lib/types';
 
-export interface TrackPoint {
-  distance: number; // km from start
-  elevation: number; // meters above sea level
-  lat?: number;
-  lng?: number;
-}
+export type { TrackPoint };
 
 interface ElevationProfileProps {
   trackPoints: TrackPoint[];
@@ -21,6 +17,8 @@ const VIEW_H = 280;
 const PAD = { top: 44, right: 28, bottom: 48, left: 68 };
 const CHART_W = VIEW_W - PAD.left - PAD.right;
 const CHART_H = VIEW_H - PAD.top - PAD.bottom;
+// Minimum vertical span to avoid divide-by-zero on flat profiles
+const MIN_ELEV_SPAN = 10;
 
 /** Catmull-Rom spline → SVG cubic bezier path string */
 function catmullRomPath(pts: { x: number; y: number }[]): string {
@@ -42,6 +40,22 @@ function catmullRomPath(pts: { x: number; y: number }[]): string {
   return d.join(' ');
 }
 
+/** Binary search: index of the element in a sorted array closest to target */
+function binarySearchClosest(arr: number[], target: number): number {
+  if (arr.length === 0) return 0;
+  let lo = 0;
+  let hi = arr.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (arr[mid] < target) lo = mid + 1;
+    else hi = mid;
+  }
+  if (lo > 0 && Math.abs(arr[lo - 1] - target) <= Math.abs(arr[lo] - target)) {
+    return lo - 1;
+  }
+  return lo;
+}
+
 export default function ElevationProfile({
   trackPoints,
   routeName = 'Route Profile',
@@ -50,35 +64,55 @@ export default function ElevationProfile({
   const uid = useId().replace(/:/g, '');
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
-  /* ── Derived statistics ── */
+  /* ── Derived statistics (sorts input by distance defensively) ── */
   const stats = useMemo(() => {
-    if (trackPoints.length === 0) return null;
-    const elevs = trackPoints.map((p) => p.elevation);
+    if (trackPoints.length < 2) return null;
+
+    // Sort a copy so callers don't need to guarantee order
+    const sorted = [...trackPoints].sort((a, b) => a.distance - b.distance);
+    const maxDist = sorted[sorted.length - 1].distance;
+
+    // Guard: a single point at distance 0 (or duplicate distances) makes the X axis degenerate
+    if (maxDist <= 0) return null;
+
+    const elevs = sorted.map((p) => p.elevation);
     const maxElev = Math.max(...elevs);
     const minElev = Math.min(...elevs);
-    const maxDist = trackPoints[trackPoints.length - 1].distance;
+
     let totalGain = 0;
-    for (let i = 1; i < trackPoints.length; i++) {
-      const diff = trackPoints[i].elevation - trackPoints[i - 1].elevation;
+    for (let i = 1; i < sorted.length; i++) {
+      const diff = sorted[i].elevation - sorted[i - 1].elevation;
       if (diff > 0) totalGain += diff;
     }
+
     const summitIdx = elevs.indexOf(maxElev);
-    return { maxElev, minElev, maxDist, totalGain: Math.round(totalGain), summitIdx };
+    const distances = sorted.map((p) => p.distance); // pre-built for binary search
+
+    return {
+      sorted,
+      distances,
+      maxElev,
+      minElev,
+      maxDist,
+      totalGain: Math.round(totalGain),
+      summitIdx,
+    };
   }, [trackPoints]);
 
-  /* ── Map track points → SVG coordinates ── */
+  /* ── Map sorted track points → SVG coordinates ── */
   const svgPts = useMemo(() => {
     if (!stats) return [];
-    const { maxElev, minElev, maxDist } = stats;
+    const { sorted, maxElev, minElev, maxDist } = stats;
     const span = maxElev - minElev;
     const paddedMin = minElev - span * 0.08;
     const paddedMax = maxElev + span * 0.12;
-    const elevSpan = paddedMax - paddedMin;
-    return trackPoints.map((p) => ({
+    // Clamp to MIN_ELEV_SPAN so flat profiles never divide by zero
+    const elevSpan = Math.max(paddedMax - paddedMin, MIN_ELEV_SPAN);
+    return sorted.map((p) => ({
       x: PAD.left + (p.distance / maxDist) * CHART_W,
       y: PAD.top + CHART_H - ((p.elevation - paddedMin) / elevSpan) * CHART_H,
     }));
-  }, [trackPoints, stats]);
+  }, [stats]);
 
   /* ── Y-axis ticks ── */
   const yTicks = useMemo(() => {
@@ -87,7 +121,7 @@ export default function ElevationProfile({
     const span = maxElev - minElev;
     const paddedMin = minElev - span * 0.08;
     const paddedMax = maxElev + span * 0.12;
-    const elevSpan = paddedMax - paddedMin;
+    const elevSpan = Math.max(paddedMax - paddedMin, MIN_ELEV_SPAN);
     const interval = Math.ceil(span / 4 / 100) * 100 || 100;
     const start = Math.ceil(paddedMin / interval) * interval;
     const ticks: { value: number; y: number }[] = [];
@@ -118,14 +152,15 @@ export default function ElevationProfile({
 
   const smoothPath = useMemo(() => catmullRomPath(svgPts), [svgPts]);
 
+  // Require >= 2 SVG points so smoothPath is non-empty before closing the fill shape
   const fillPath = useMemo(() => {
-    if (svgPts.length === 0) return '';
+    if (svgPts.length < 2 || !smoothPath) return '';
     const bottom = PAD.top + CHART_H;
     const last = svgPts[svgPts.length - 1];
     return `${smoothPath} L ${last.x.toFixed(1)} ${bottom} L ${PAD.left} ${bottom} Z`;
   }, [smoothPath, svgPts]);
 
-  /* ── Hover interaction ── */
+  /* ── Hover interaction — O(log n) binary search on sorted distances ── */
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
       if (!stats) return;
@@ -137,21 +172,12 @@ export default function ElevationProfile({
         return;
       }
       const dist = (chartX / CHART_W) * stats.maxDist;
-      let closest = 0;
-      let minDiff = Infinity;
-      trackPoints.forEach((p, i) => {
-        const diff = Math.abs(p.distance - dist);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closest = i;
-        }
-      });
-      setHoverIdx(closest);
+      setHoverIdx(binarySearchClosest(stats.distances, dist));
     },
-    [stats, trackPoints]
+    [stats]
   );
 
-  if (!stats || trackPoints.length === 0) {
+  if (!stats) {
     return (
       <div className={`bg-gray-900 rounded-xl p-6 ${className}`}>
         <p className="text-gray-500 text-sm">No track data available</p>
@@ -159,7 +185,7 @@ export default function ElevationProfile({
     );
   }
 
-  const hoverPt = hoverIdx !== null ? trackPoints[hoverIdx] : null;
+  const hoverPt = hoverIdx !== null ? stats.sorted[hoverIdx] : null;
   const hoverSvg = hoverIdx !== null ? svgPts[hoverIdx] : null;
   const summitSvg = svgPts[stats.summitIdx];
 
@@ -351,17 +377,19 @@ export default function ElevationProfile({
           {/* ── Animated terrain ── */}
           <g clipPath={`url(#${clipId})`}>
             {/* Filled terrain area */}
-            <path d={fillPath} fill={`url(#${gradFillId})`} />
+            {fillPath && <path d={fillPath} fill={`url(#${gradFillId})`} />}
 
             {/* Elevation line with glow */}
-            <path
-              d={smoothPath}
-              fill="none"
-              stroke={`url(#${gradStrokeId})`}
-              strokeWidth="2.5"
-              strokeLinejoin="round"
-              filter={`url(#${glowId})`}
-            />
+            {smoothPath && (
+              <path
+                d={smoothPath}
+                fill="none"
+                stroke={`url(#${gradStrokeId})`}
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+                filter={`url(#${glowId})`}
+              />
+            )}
           </g>
 
           {/* ── Summit marker (HC triangle) ── */}

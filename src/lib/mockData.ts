@@ -1,9 +1,6 @@
-export interface TrackPoint {
-  distance: number; // km from start
-  elevation: number; // meters above sea level
-  lat?: number;
-  lng?: number;
-}
+import { TrackPoint } from '@/lib/types';
+
+export type { TrackPoint };
 
 // Realistic elevation profile for "Mountain Pass Challenge"
 // A 65.1km alpine stage with ~1450m total elevation gain
