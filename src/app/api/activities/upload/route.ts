@@ -8,6 +8,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
+  const allowed = /\.(gpx|fit)$/i;
+  if (!allowed.test(file.name)) {
+    return NextResponse.json(
+      { error: "Unsupported file type. Only .gpx and .fit files are accepted." },
+      { status: 400 }
+    );
+  }
+
   // Log receipt of the file (no actual parsing)
   console.log(`[upload] Received file: ${file.name} (${file.size} bytes, type: ${file.type})`);
 

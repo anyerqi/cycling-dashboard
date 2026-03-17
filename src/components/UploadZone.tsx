@@ -3,6 +3,8 @@
 import { useState, useCallback, useRef } from "react";
 import { Activity } from "@/lib/mockData";
 
+const ALLOWED_EXTENSIONS = /\.(gpx|fit)$/i;
+
 interface UploadZoneProps {
   onActivityAdded: (activity: Activity) => void;
 }
@@ -15,6 +17,11 @@ export default function UploadZone({ onActivityAdded }: UploadZoneProps) {
 
   const uploadFile = useCallback(
     async (file: File) => {
+      if (!ALLOWED_EXTENSIONS.test(file.name)) {
+        setLastResult("✗ Unsupported file type. Please upload a .gpx or .fit file.");
+        return;
+      }
+
       setIsUploading(true);
       setLastResult(null);
 
@@ -34,7 +41,7 @@ export default function UploadZone({ onActivityAdded }: UploadZoneProps) {
         const newActivity: Activity = {
           id: data.id,
           date: data.date,
-          routeName: file.name.replace(/\.(gpx|fit)$/i, ""),
+          routeName: file.name.replace(ALLOWED_EXTENSIONS, ""),
           distance: data.distance,
           duration: data.duration,
           elevation: data.elevation,
@@ -79,15 +86,27 @@ export default function UploadZone({ onActivityAdded }: UploadZoneProps) {
     [uploadFile]
   );
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      inputRef.current?.click();
+    }
+  }, []);
+
   return (
     <div className="space-y-3">
       <div
+        role="button"
+        tabIndex={0}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => inputRef.current?.click()}
+        onKeyDown={handleKeyDown}
+        aria-label="Upload GPX or FIT file"
         className={`
           border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900
           ${isDragging
             ? "border-blue-500 bg-blue-500/10"
             : "border-gray-700 hover:border-gray-500 hover:bg-gray-800/30"
