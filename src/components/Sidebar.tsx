@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AICoachPanel from "@/components/AICoachPanel";
 
 const navItems = [
   { label: "Dashboard", href: "/", icon: "📊" },
@@ -29,6 +30,7 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
+      <AICoachPanel />
       <div className="px-6 py-4 border-t border-gray-800 text-xs text-gray-500">
         v0.1.0
       </div>
