@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR}/.claude/metadata-updater.sh\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "sk-no-key-required",
+    "ANTHROPIC_BASE_URL": "http://host.docker.internal:8001",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "unsloth/Qwen3.5-35B-A3B",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "unsloth/Qwen3.5-35B-A3B",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "unsloth/Qwen3.5-35B-A3B",
+    "ANTHROPIC_MODEL": "unsloth/Qwen3.5-35B-A3B",
+    "ANTHROPIC_REASONING_MODEL": "unsloth/Qwen3.5-35B-A3B",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
+  },
+  "skipDangerousModePermissionPrompt": true
+}

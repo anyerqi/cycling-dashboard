@@ -1,0 +1,372 @@
+"use client";
+
+interface TrajectoryPoint {
+  distance: number; // cumulative distance in km
+  elevation: number; // elevation in meters
+  latitude?: number;
+  longitude?: number;
+}
+
+interface RouteElevationChartProps {
+  trajectory: TrajectoryPoint[];
+  title?: string;
+  className?: string;
+}
+
+interface ChartDimensions {
+  width: number;
+  height: number;
+  padding: { top: number; right: number; bottom: number; left: number };
+}
+
+const defaultDimensions: ChartDimensions = {
+  width: 800,
+  height: 300,
+  padding: { top: 20, right: 20, bottom: 40, left: 60 },
+};
+
+function calculateMinMax(data: TrajectoryPoint[]) {
+  const elevations = data.map((d) => d.elevation);
+  const distances = data.map((d) => d.distance);
+
+  return {
+    minElevation: Math.min(...elevations),
+    maxElevation: Math.max(...elevations),
+    minDistance: Math.min(...distances),
+    maxDistance: Math.max(...distances),
+  };
+}
+
+function createSplinePath(
+  points: { x: number; y: number }[],
+  tension: number = 0.3
+) {
+  if (points.length < 2) return "";
+
+  if (points.length === 2) {
+    return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+  }
+
+  const pathCommands: string[] = [];
+  pathCommands.push(`M ${points[0].x} ${points[0].y}`);
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = i > 0 ? points[i - 1] : points[0];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = i < points.length - 2 ? points[i + 2] : p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) * tension;
+    const cp1y = p1.y + (p2.y - p0.y) * tension;
+    const cp2x = p2.x - (p3.x - p1.x) * tension;
+    const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+    pathCommands.push(
+      `C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`
+    );
+  }
+
+  return pathCommands.join(" ");
+}
+
+function formatElevation(elevation: number): string {
+  return elevation >= 1000
+    ? `${(elevation / 1000).toFixed(1)}k`
+    : elevation.toString();
+}
+
+function formatDistance(distance: number): string {
+  return distance >= 1000
+    ? `${(distance / 1000).toFixed(1)}k`
+    : distance.toFixed(0);
+}
+
+export default function RouteElevationChart({
+  trajectory,
+  title = "Elevation Profile",
+  className = "",
+}: RouteElevationChartProps) {
+  if (!trajectory || trajectory.length === 0) {
+    return (
+      <div
+        className={`bg-gray-900 border border-gray-800 rounded-xl p-6 ${className}`}
+      >
+        <h3 className="text-sm font-semibold text-gray-400 mb-4">{title}</h3>
+        <div className="flex items-center justify-center h-64 text-gray-500">
+          No elevation data available
+        </div>
+      </div>
+    );
+  }
+
+  const { minElevation, maxElevation, minDistance, maxDistance } =
+    calculateMinMax(trajectory);
+
+  const { width, height, padding } = defaultDimensions;
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+
+  const xScale = (distance: number) =>
+    padding.left +
+    ((distance - minDistance) / (maxDistance - minDistance || 1)) * chartWidth;
+
+  const yScale = (elevation: number) =>
+    padding.top +
+    chartHeight -
+    ((elevation - minElevation) / (maxElevation - minElevation || 1)) *
+      chartHeight;
+
+  const chartPoints = trajectory.map((point) => ({
+    x: xScale(point.distance),
+    y: yScale(point.elevation),
+  }));
+
+  const pathD = createSplinePath(chartPoints);
+  const areaD = `${pathD} L ${chartPoints[chartPoints.length - 1].x} ${
+    height - padding.bottom
+  } L ${chartPoints[0].x} ${height - padding.bottom} Z`;
+
+  const maxElevationForLabels = Math.ceil(maxElevation / 50) * 50;
+  const elevationSteps = Math.max(4, Math.ceil((maxElevationForLabels - minElevation) / 50));
+  const elevationLabels = Array.from({ length: elevationSteps + 1 }, (_, i) =>
+    minElevation + i * ((maxElevationForLabels - minElevation) / elevationSteps)
+  );
+
+  const totalDistance = maxDistance - minDistance;
+  const totalElevationGain = trajectory
+    .reduce((sum, point, i, arr) => {
+      if (i === 0) return 0;
+      const diff = point.elevation - arr[i - 1].elevation;
+      return diff > 0 ? sum + diff : sum;
+    }, 0)
+    .toFixed(0);
+
+  const maxGrade = trajectory.reduce((max, point, i, arr) => {
+    if (i === 0) return max;
+    const distanceDiff = point.distance - arr[i - 1].distance;
+    const elevationDiff = point.elevation - arr[i - 1].elevation;
+    if (distanceDiff > 0) {
+      const grade = (elevationDiff / distanceDiff) * 100;
+      return Math.max(max, grade);
+    }
+    return max;
+  }, 0);
+
+  return (
+    <div
+      className={`bg-gray-900 border border-gray-800 rounded-xl overflow-hidden ${className}`}
+    >
+      <div className="px-6 py-4 border-b border-gray-800">
+        <h3 className="text-base font-semibold text-white">{title}</h3>
+      </div>
+
+      <div className="p-6">
+        <svg
+          width="100%"
+          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="block"
+        >
+          {/* Gradients */}
+          <defs>
+            <linearGradient id="elevationGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop
+                offset="0%"
+                style={{ stopColor: "#ef4444", stopOpacity: 0.8 }}
+              />
+              <stop
+                offset="50%"
+                style={{ stopColor: "#f59e0b", stopOpacity: 0.8 }}
+              />
+              <stop
+                offset="100%"
+                style={{ stopColor: "#10b981", stopOpacity: 0.8 }}
+              />
+            </linearGradient>
+
+            <linearGradient id="gridGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style={{ stopColor: "#374151", stopOpacity: 0.3 }} />
+              <stop offset="100%" style={{ stopColor: "#374151", stopOpacity: 0.1 }} />
+            </linearGradient>
+
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Grid lines */}
+          {elevationLabels.map((label, i) => {
+            const y = yScale(label);
+            return (
+              <g key={i}>
+                <line
+                  x1={padding.left}
+                  y1={y}
+                  x2={width - padding.right}
+                  y2={y}
+                  stroke="#374151"
+                  strokeWidth="1"
+                  strokeDasharray="4,4"
+                />
+                <text
+                  x={padding.left - 10}
+                  y={y + 4}
+                  textAnchor="end"
+                  className="text-xs fill-gray-500 font-medium"
+                  fontSize="11"
+                >
+                  {formatElevation(label)}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Distance markers */}
+          {Array.from({ length: 6 }, (_, i) => {
+            const distance = minDistance + (i / 5) * (maxDistance - minDistance);
+            const x = xScale(distance);
+            return (
+              <g key={i}>
+                <line
+                  x1={x}
+                  y1={padding.top}
+                  x2={x}
+                  y2={height - padding.bottom}
+                  stroke="#374151"
+                  strokeWidth="1"
+                  strokeDasharray="2,2"
+                />
+                <text
+                  x={x}
+                  y={height - padding.bottom + 20}
+                  textAnchor="middle"
+                  className="text-xs fill-gray-500 font-medium"
+                  fontSize="11"
+                >
+                  {formatDistance(distance)}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Area fill */}
+          <path
+            d={areaD}
+            fill="url(#elevationGradient)"
+            opacity="0.5"
+          />
+
+          {/* Main elevation line */}
+          <path
+            d={pathD}
+            fill="none"
+            stroke="url(#elevationGradient)"
+            strokeWidth="3"
+            filter="url(#glow)"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Start and end markers */}
+          <g>
+            <circle
+              cx={chartPoints[0].x}
+              cy={chartPoints[0].y}
+              r="5"
+              fill="#10b981"
+              stroke="#065f46"
+              strokeWidth="2"
+            />
+            <circle
+              cx={chartPoints[chartPoints.length - 1].x}
+              cy={chartPoints[chartPoints.length - 1].y}
+              r="5"
+              fill="#ef4444"
+              stroke="#991b1b"
+              strokeWidth="2"
+            />
+          </g>
+
+          {/* Statistics panel */}
+          <g transform={`translate(${width - padding.right + 10}, ${padding.top + 10})`}>
+            <rect
+              x="0"
+              y="0"
+              width="180"
+              height="110"
+              rx="8"
+              fill="#1f2937"
+              stroke="#374151"
+              strokeWidth="1"
+            />
+            <text
+              x="10"
+              y="25"
+              className="text-xs fill-gray-400 font-medium"
+              fontSize="11"
+            >
+              Statistics
+            </text>
+            <text
+              x="10"
+              y="48"
+              className="text-lg fill-white font-bold"
+              fontSize="16"
+            >
+              {formatDistance(totalDistance)}
+            </text>
+            <text
+              x="10"
+              y="65"
+              className="text-xs fill-gray-500"
+              fontSize="11"
+            >
+              Total Distance
+            </text>
+            <text
+              x="10"
+              y="85"
+              className="text-lg fill-white font-bold"
+              fontSize="16"
+            >
+              {totalElevationGain}m
+            </text>
+            <text
+              x="10"
+              y="102"
+              className="text-xs fill-gray-500"
+              fontSize="11"
+            >
+              Elevation Gain
+            </text>
+          </g>
+
+          {/* Max grade indicator */}
+          <g transform={`translate(${width - padding.right + 10}, ${height - padding.bottom - 25})`}>
+            <rect
+              x="0"
+              y="0"
+              width="180"
+              height="30"
+              rx="6"
+              fill="#374151"
+            />
+            <text
+              x="10"
+              y="20"
+              className="text-xs fill-white font-semibold"
+              fontSize="12"
+            >
+              Max Grade: {maxGrade.toFixed(1)}%
+            </text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  );
+}

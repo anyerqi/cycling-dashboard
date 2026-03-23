@@ -5,6 +5,7 @@
   "requires": true,
   "packages": {
     "": {
+<<<<<<< HEAD
       "name": "cycling-dashboard",
       "version": "0.1.0",
       "dependencies": {
