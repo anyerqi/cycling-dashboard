@@ -3,6 +3,9 @@
 ## Issue
 [#9: 增加社交排行 (Leaderboard) 的功能](https://github.com/anyerqi/cycling-dashboard/issues/9)
 
+## PR Created
+✅ **PR #10**: [feat: 增加社交排行 (Leaderboard) 的功能 (#9)](https://github.com/anyerqi/cycling-dashboard/pull/10)
+
 ## Changes Made
 
 ### New Files Created:
@@ -36,8 +39,3 @@
 - ✅ TypeScript compilation passes
 - ✅ ESLint passes (no errors)
 - ✅ Next.js build succeeds
-
-## To Deploy:
-1. Push the `feat/9` branch to GitHub
-2. Create a PR from the branch
-3. The PR will auto-link to issue #9
