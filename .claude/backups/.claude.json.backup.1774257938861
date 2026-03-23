@@ -8,13 +8,13 @@
   },
   "tipsHistory": {
     "new-user-warmup": 5,
-    "default-permission-mode-config": 5,
+    "default-permission-mode-config": 15,
     "terminal-setup": 6,
     "memory-command": 6,
     "theme-command": 8,
     "colorterm-truecolor": 8,
     "status-line": 10,
-    "prompt-queue": 10,
+    "prompt-queue": 15,
     "enter-to-steer-in-relatime": 10,
     "todo-list": 10,
     "install-github-app": 10,
@@ -29,12 +29,12 @@
     "web-app": 10,
     "mobile-app": 10,
     "feedback-command": 10,
-    "ide-upsell-external-terminal": 11,
+    "ide-upsell-external-terminal": 15,
     "permissions": 11,
     "rename-conversation": 11,
     "custom-commands": 11
   },
-  "promptQueueUseCount": 3,
+  "promptQueueUseCount": 6,
   "cachedGrowthBookFeatures": {
     "tengu-off-switch": {
       "activated": false
