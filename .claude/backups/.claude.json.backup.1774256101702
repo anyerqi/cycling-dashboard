@@ -1,5 +1,5 @@
 {
-  "numStartups": 12,
+  "numStartups": 15,
   "customApiKeyResponses": {
     "approved": [],
     "rejected": [
@@ -8,13 +8,13 @@
   },
   "tipsHistory": {
     "new-user-warmup": 5,
-    "default-permission-mode-config": 5,
+    "default-permission-mode-config": 15,
     "terminal-setup": 6,
     "memory-command": 6,
     "theme-command": 8,
     "colorterm-truecolor": 8,
     "status-line": 10,
-    "prompt-queue": 10,
+    "prompt-queue": 15,
     "enter-to-steer-in-relatime": 10,
     "todo-list": 10,
     "install-github-app": 10,
@@ -320,7 +320,15 @@
   "projects": {
     "/Users/hunter/develop/ai-study/cycling-dashboard": {
       "hasTrustDialogAccepted": true,
-      "projectOnboardingSeenCount": 2
+      "projectOnboardingSeenCount": 2,
+      "exampleFiles": [
+        "ActivityTable.tsx",
+        "page.tsx",
+        "mockData.ts",
+        "route.ts",
+        "DashboardClient.tsx"
+      ],
+      "exampleFilesGeneratedAt": 1774254098263
     },
     "/Users/hunter/.worktrees/cycling-dashboard/cd-2": {
       "hasTrustDialogAccepted": true,
@@ -339,6 +347,14 @@
       "projectOnboardingSeenCount": 1
     },
     "/Users/hunter/.worktrees/cycling-dashboard/cd-6": {
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 1
+    },
+    "/Users/hunter/.worktrees/cycling-dashboard/cd-7": {
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 1
+    },
+    "/Users/hunter/.worktrees/cycling-dashboard/cd-8": {
       "hasTrustDialogAccepted": true,
       "projectOnboardingSeenCount": 1
     }

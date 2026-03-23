@@ -1,5 +1,5 @@
 {
-  "numStartups": 12,
+  "numStartups": 15,
   "customApiKeyResponses": {
     "approved": [],
     "rejected": [
@@ -319,7 +319,15 @@
   "projects": {
     "/Users/hunter/develop/ai-study/cycling-dashboard": {
       "hasTrustDialogAccepted": true,
-      "projectOnboardingSeenCount": 2
+      "projectOnboardingSeenCount": 2,
+      "exampleFiles": [
+        "ActivityTable.tsx",
+        "page.tsx",
+        "mockData.ts",
+        "route.ts",
+        "DashboardClient.tsx"
+      ],
+      "exampleFilesGeneratedAt": 1774254098263
     },
     "/Users/hunter/.worktrees/cycling-dashboard/cd-2": {
       "hasTrustDialogAccepted": true,
@@ -338,6 +346,14 @@
       "projectOnboardingSeenCount": 1
     },
     "/Users/hunter/.worktrees/cycling-dashboard/cd-6": {
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 1
+    },
+    "/Users/hunter/.worktrees/cycling-dashboard/cd-7": {
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 1
+    },
+    "/Users/hunter/.worktrees/cycling-dashboard/cd-8": {
       "hasTrustDialogAccepted": true,
       "projectOnboardingSeenCount": 1
     }

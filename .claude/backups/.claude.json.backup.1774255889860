@@ -1,5 +1,5 @@
 {
-  "numStartups": 11,
+  "numStartups": 15,
   "customApiKeyResponses": {
     "approved": [],
     "rejected": [
@@ -30,9 +30,12 @@
     "mobile-app": 10,
     "feedback-command": 10,
     "ide-upsell-external-terminal": 11,
-    "permissions": 11
+    "permissions": 11,
+    "rename-conversation": 11,
+    "custom-commands": 11
   },
   "promptQueueUseCount": 3,
+  "showExpandedTodos": true,
   "cachedGrowthBookFeatures": {
     "tengu-off-switch": {
       "activated": false
@@ -317,7 +320,15 @@
   "projects": {
     "/Users/hunter/develop/ai-study/cycling-dashboard": {
       "hasTrustDialogAccepted": true,
-      "projectOnboardingSeenCount": 2
+      "projectOnboardingSeenCount": 2,
+      "exampleFiles": [
+        "ActivityTable.tsx",
+        "page.tsx",
+        "mockData.ts",
+        "route.ts",
+        "DashboardClient.tsx"
+      ],
+      "exampleFilesGeneratedAt": 1774254098263
     },
     "/Users/hunter/.worktrees/cycling-dashboard/cd-2": {
       "hasTrustDialogAccepted": true,
@@ -332,6 +343,18 @@
       "projectOnboardingSeenCount": 1
     },
     "/Users/hunter/.worktrees/cycling-dashboard/cd-5": {
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 1
+    },
+    "/Users/hunter/.worktrees/cycling-dashboard/cd-6": {
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 1
+    },
+    "/Users/hunter/.worktrees/cycling-dashboard/cd-7": {
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 1
+    },
+    "/Users/hunter/.worktrees/cycling-dashboard/cd-8": {
       "hasTrustDialogAccepted": true,
       "projectOnboardingSeenCount": 1
     }
