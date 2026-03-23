@@ -1,0 +1,27 @@
+dataDir: ~/.agent-orchestrator
+worktreeDir: ~/.worktrees
+port: 3000
+defaults:
+  runtime: docker
+  agent: claude-code
+  workspace: worktree
+  notifiers:
+    - desktop
+runtimes:
+  docker:
+    image: ao-claude-worker:latest
+    claudeConfig: project
+    mountGhConfig: true
+    mountGitConfig: true
+projects:
+  cycling-dashboard:
+    name: cycling-dashboard
+    sessionPrefix: cd
+    repo: anyerqi/cycling-dashboard
+    path: /Users/hunter/develop/ai-study/cycling-dashboard
+    defaultBranch: main
+    agentRules: |-
+      Always run tests before pushing.
+      Use conventional commits (feat:, fix:, chore:, docs:, refactor:, test:).
+      Link issue numbers in commit messages.
+      Write clear commit messages that explain WHY, not just WHAT.

@@ -1,0 +1,38 @@
+# Push Instructions for Issue #7
+
+## Current Status
+- Branch `feat/7` is created with all changes committed
+- Local repository is ready, but GitHub authentication is required to push
+
+## Changes Implemented
+1. **RouteElevationChart.tsx** - New Tour de France styled elevation chart component
+2. **mockData.ts** - Added TrackPoint interface and elevation profile generation
+3. **page.tsx** - Integrated the chart into the dashboard
+4. **package.json** - Added recharts dependency
+
+## To Complete:
+
+### Option 1: Using GitHub CLI
+```bash
+cd /Users/hunter/.worktrees/cycling-dashboard/cd-5
+gh auth login
+git push -u origin feat/7
+gh pr create --title "feat: Implement route elevation chart" \
+             --body "Closes #7 - Adds Tour de France styled elevation profile chart component" \
+             --base main
+```
+
+### Option 2: Using Browser
+1. Navigate to: https://github.com/anyerqi/cycling-dashboard
+2. Create a new branch named `feat/7` from the local branch
+3. Push the branch
+4. Create a PR from the GitHub UI
+
+## Verification
+```bash
+# Build should pass
+npm run build
+
+# Lint should pass
+npm run lint
+```

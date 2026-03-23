@@ -1,0 +1,303 @@
+"use client";
+
+import { useState, useMemo, useRef, useEffect } from "react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  ReferenceLine,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+/**
+ * Standard track point interface for elevation data
+ */
+export interface TrackPoint {
+  distance: number; // cumulative distance in meters or km
+  elevation: number; // elevation in meters
+  latitude?: number; // optional lat/lng for route mapping
+  longitude?: number;
+  timestamp?: number;
+}
+
+export interface RouteElevationChartProps {
+  /** Array of track points with distance and elevation data */
+  trackData: TrackPoint[];
+  /** Custom title for the chart */
+  title?: string;
+  /** Distance unit: 'km' or 'm' */
+  distanceUnit?: "km" | "m";
+  /** Elevation unit: 'm' (meters) or 'ft' (feet) */
+  elevationUnit?: "m" | "ft";
+  /** Custom color for the elevation area (Tour de France yellow-inspired) */
+  accentColor?: string;
+}
+
+interface ChartDataPoint {
+  index: number;
+  distance: number;
+  distanceRaw: number;
+  elevation: number;
+  elevationRaw: number;
+  latitude?: number;
+  longitude?: number;
+  timestamp?: number;
+}
+
+interface Stats {
+  min: number;
+  max: number;
+  total: number;
+  avg: number;
+  totalDistance: number;
+}
+
+/**
+ * Tour de France inspired elevation profile chart component.
+ * Renders a dynamic SVG-based elevation profile with professional broadcast styling.
+ *
+ * Visual characteristics:
+ * - Dark theme with high contrast
+ * - Yellow accent color (Tour de France signature)
+ * - Smooth gradient fills
+ * - Detailed tooltips with elevation and distance info
+ */
+export default function RouteElevationChart({
+  trackData,
+  title = "Elevation Profile",
+  distanceUnit = "km",
+  elevationUnit = "m",
+  accentColor = "#FFD700", // Tour de France yellow
+}: RouteElevationChartProps) {
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [chartHeight, setChartHeight] = useState(300);
+
+  // Process and format data for the chart
+  const chartData = useMemo<ChartDataPoint[]>(() => {
+    const convertElevation = (elevation: number): number => {
+      return elevationUnit === "ft" ? elevation * 3.28084 : elevation;
+    };
+
+    const convertDistance = (distance: number): number => {
+      return distanceUnit === "km" ? distance / 1000 : distance;
+    };
+
+    return trackData.map((point, index) => ({
+      index,
+      distance: convertDistance(point.distance),
+      distanceRaw: point.distance,
+      elevation: convertElevation(point.elevation),
+      elevationRaw: point.elevation,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      timestamp: point.timestamp,
+    }));
+  }, [trackData, distanceUnit, elevationUnit]);
+
+  // Calculate chart dimensions
+  useEffect(() => {
+    const updateHeight = () => {
+      if (chartContainerRef.current) {
+        const width = chartContainerRef.current.clientWidth;
+        // Adjust height based on aspect ratio for better profile viewing
+        const newHeight = Math.max(280, Math.min(400, width * 0.4));
+        setChartHeight(newHeight);
+      }
+    };
+
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
+  // Get elevation stats
+  const stats = useMemo<Stats>(() => {
+    if (chartData.length === 0) {
+      return { min: 0, max: 0, total: 0, avg: 0, totalDistance: 0 };
+    }
+
+    const elevations = chartData.map((d) => d.elevation);
+    const minElevation = Math.min(...elevations);
+    const maxElevation = Math.max(...elevations);
+    const totalElevation = elevations.reduce((a, b) => a + b, 0);
+    const avgElevation = totalElevation / elevations.length;
+    const totalDistance = chartData[chartData.length - 1]?.distance ?? 0;
+
+    return {
+      min: minElevation,
+      max: maxElevation,
+      total: totalElevation,
+      avg: avgElevation,
+      totalDistance,
+    };
+  }, [chartData]);
+
+  // Custom Y-axis tick formatter
+  const formatYAxis = (value: number) => {
+    return `${value.toFixed(0)}${elevationUnit}`;
+  };
+
+  // Custom X-axis tick formatter
+  const formatXAxis = (value: number) => {
+    return `${value.toFixed(1)}${distanceUnit}`;
+  };
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-base font-semibold text-white">{title}</h2>
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
+            <span className="text-gray-400">Profile</span>
+          </div>
+          <div className="text-gray-500">
+            {chartData.length} points
+          </div>
+        </div>
+      </div>
+
+      {/* Stats bar */}
+      <div className="grid grid-cols-4 gap-4 mb-6 pb-6 border-b border-gray-800">
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Distance</p>
+          <p className="text-lg font-bold text-white mt-1">
+            {stats.totalDistance.toFixed(1)}
+            <span className="text-sm font-normal text-gray-400 ml-1">{distanceUnit}</span>
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Elevation Gain</p>
+          <p className="text-lg font-bold text-white mt-1">
+            {stats.total.toFixed(0)}
+            <span className="text-sm font-normal text-gray-400 ml-1">{elevationUnit}</span>
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Min</p>
+          <p className="text-lg font-bold text-white mt-1">
+            {stats.min.toFixed(0)}
+            <span className="text-sm font-normal text-gray-400 ml-1">{elevationUnit}</span>
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Max</p>
+          <p className="text-lg font-bold text-white mt-1">
+            {stats.max.toFixed(0)}
+            <span className="text-sm font-normal text-gray-400 ml-1">{elevationUnit}</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div ref={chartContainerRef} className="w-full" style={{ height: chartHeight }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={chartData}
+            margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+          >
+            <defs>
+              {/* Gradient fill for elevation area - Tour de France inspired */}
+              <linearGradient id="elevationGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="0%"
+                  style={{ stopColor: accentColor, stopOpacity: 0.8 }}
+                />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: accentColor, stopOpacity: 0.1 }}
+                />
+              </linearGradient>
+              {/* Gradient for area stroke */}
+              <linearGradient id="elevationStrokeGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="0%"
+                  style={{ stopColor: accentColor, stopOpacity: 1 }}
+                />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: accentColor, stopOpacity: 0.3 }}
+                />
+              </linearGradient>
+            </defs>
+
+            {/* Grid lines */}
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#374151"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="distance"
+              stroke="#6B7280"
+              tick={{ fill: "#9CA3AF", fontSize: 12 }}
+              tickFormatter={formatXAxis}
+              height={30}
+              tickLine={false}
+              axisLine={{ stroke: "#374151" }}
+            />
+
+            {/* Y-axis */}
+            <YAxis
+              stroke="#6B7280"
+              tick={{ fill: "#9CA3AF", fontSize: 12 }}
+              tickFormatter={formatYAxis}
+              width={50}
+              tickLine={false}
+              axisLine={{ stroke: "#374151" }}
+            />
+
+            {/* Elevation area */}
+            <Area
+              type="monotone"
+              dataKey="elevation"
+              stroke="url(#elevationStrokeGradient)"
+              strokeWidth={2}
+              fill="url(#elevationGradient)"
+              animationDuration={1500}
+              activeDot={{
+                r: 6,
+                strokeWidth: 0,
+                fill: accentColor,
+                stroke: "#1F2937",
+              }}
+            />
+
+            {/* Reference line at mean elevation */}
+            <ReferenceLine
+              y={stats.avg}
+              stroke="#6B7280"
+              strokeDasharray="3 3"
+              label={{
+                value: "Avg",
+                position: "right",
+                fill: "#6B7280",
+                fontSize: 11,
+              }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-6 mt-4">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: accentColor }}
+          />
+          <span className="text-xs text-gray-400">Elevation</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-0.5 bg-gray-600" />
+          <span className="text-xs text-gray-400">Mean Elevation</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
