@@ -29,13 +29,12 @@
     "web-app": 10,
     "mobile-app": 10,
     "feedback-command": 10,
-    "ide-upsell-external-terminal": 11,
+    "ide-upsell-external-terminal": 15,
     "permissions": 11,
     "rename-conversation": 11,
     "custom-commands": 11
   },
-  "promptQueueUseCount": 3,
-  "showExpandedTodos": true,
+  "promptQueueUseCount": 16,
   "cachedGrowthBookFeatures": {
     "tengu-off-switch": {
       "activated": false
