@@ -46,9 +46,18 @@ if [[ -z "${AO_SESSION:-}" ]]; then
   exit 0
 fi
 
+# Sanitize AO_SESSION to avoid path traversal and unsafe characters
+session_basename="${AO_SESSION##*/}"
+safe_session="$(printf '%s' "$session_basename" | tr -cd 'A-Za-z0-9._-')"
+
+if [[ -z "$safe_session" ]]; then
+  echo '{"systemMessage": "AO_SESSION value is invalid after sanitization, skipping metadata update"}'
+  exit 0
+fi
+
 # Construct metadata file path
 # AO_DATA_DIR is already set to the project-specific sessions directory
-metadata_file="$AO_DATA_DIR/$AO_SESSION"
+metadata_file="$AO_DATA_DIR/$safe_session"
 
 # Ensure metadata file exists
 if [[ ! -f "$metadata_file" ]]; then

@@ -21,45 +21,63 @@ export default function Leaderboard({ users }: LeaderboardProps) {
     return "text-gray-500";
   };
 
+  // Sort users by rank to ensure correct ordering
+  const sortedUsers = [...users].sort((a, b) => a.rank - b.rank);
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 bg-gray-800/50 rounded-lg text-xs text-gray-400 uppercase tracking-wider font-medium">
-        <div className="text-center">Rank</div>
-        <div>Cyclist</div>
-        <div className="text-right">Distance</div>
-        <div className="text-right">Elevation</div>
-        <div className="text-right">Activities</div>
-        <div className="text-right">Avg Speed</div>
-      </div>
-
-      <div className="space-y-2">
-        {users.map((user) => (
-          <div
-            key={user.username}
-            className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg items-center hover:bg-gray-800/30 transition-colors"
-          >
-            <div className={`text-center font-bold ${getRankColor(user.rank)}`}>
-              {getRankIcon(user.rank)}
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{user.avatar}</span>
-              <span className="font-medium text-white">{user.username}</span>
-            </div>
-            <div className="text-right text-gray-300">
-              {user.totalDistance.toFixed(1)}
-              <span className="text-gray-500 text-xs ml-1">km</span>
-            </div>
-            <div className="text-right text-gray-300">
-              {user.totalElevation.toLocaleString()}
-              <span className="text-gray-500 text-xs ml-1">m</span>
-            </div>
-            <div className="text-right text-gray-300">{user.totalActivities}</div>
-            <div className="text-right text-gray-300">
-              {user.avgSpeed.toFixed(1)}
-              <span className="text-gray-500 text-xs ml-1">km/h</span>
-            </div>
-          </div>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-xs">
+          <thead>
+            <tr className="bg-gray-800/50 text-gray-400 uppercase tracking-wider font-medium">
+              <th scope="col" className="px-4 py-3 text-center w-10">Rank</th>
+              <th scope="col" className="px-4 py-3 text-left">Cyclist</th>
+              <th scope="col" className="px-4 py-3 text-right">Distance</th>
+              <th scope="col" className="px-4 py-3 text-right">Elevation</th>
+              <th scope="col" className="px-4 py-3 text-right">Activities</th>
+              <th scope="col" className="px-4 py-3 text-right">Avg Speed</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-800">
+            {sortedUsers.map((user) => (
+              <tr
+                key={user.username}
+                className="bg-gray-900 hover:bg-gray-800/30 transition-colors"
+              >
+                <td
+                  className={`px-4 py-3 text-center font-bold ${getRankColor(
+                    user.rank,
+                  )}`}
+                >
+                  {getRankIcon(user.rank)}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{user.avatar}</span>
+                    <span className="font-medium text-white">
+                      {user.username}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-right text-gray-300">
+                  {user.totalDistance.toFixed(1)}
+                  <span className="text-gray-500 text-xs ml-1">km</span>
+                </td>
+                <td className="px-4 py-3 text-right text-gray-300">
+                  {user.totalElevation.toLocaleString()}
+                  <span className="text-gray-500 text-xs ml-1">m</span>
+                </td>
+                <td className="px-4 py-3 text-right text-gray-300">
+                  {user.totalActivities}
+                </td>
+                <td className="px-4 py-3 text-right text-gray-300">
+                  {user.avgSpeed.toFixed(1)}
+                  <span className="text-gray-500 text-xs ml-1">km/h</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
