@@ -1,6 +1,7 @@
 import StatCard from "@/components/StatCard";
 import DashboardClient from "@/components/DashboardClient";
-import { mockActivities, monthlySummary } from "@/lib/mockData";
+import ElevationProfile from "@/components/ElevationProfile";
+import { mockActivities, monthlySummary, mockTrackData } from "@/lib/mockData";
 
 export default function DashboardPage() {
   return (
@@ -31,6 +32,9 @@ export default function DashboardPage() {
           icon="⚡"
         />
       </div>
+
+      {/* Elevation Profile */}
+      <ElevationProfile trackPoints={mockTrackData} />
 
       {/* Client section: activities table + upload */}
       <DashboardClient initialActivities={mockActivities} />
