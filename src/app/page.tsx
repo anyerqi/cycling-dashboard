@@ -7,8 +7,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-sm text-gray-400 mt-1">Your cycling stats for this month</p>
+        <h1 className="text-2xl font-bold text-white dark:text-gray-100">Dashboard</h1>
+        <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">Your cycling stats for this month</p>
       </div>
 
       {/* Summary Cards */}
@@ -35,7 +35,7 @@ export default function DashboardPage() {
 
       {/* Route & Elevation Profile */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-3">Route &amp; Elevation Profile</h2>
+        <h2 className="text-lg font-semibold text-white dark:text-gray-100 mb-3">Route &amp; Elevation Profile</h2>
         <ElevationProfile
           trackPoints={mockTrackData}
           routeName="Mountain Pass Challenge"
