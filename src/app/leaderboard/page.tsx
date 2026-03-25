@@ -22,41 +22,41 @@ export default function LeaderboardPage() {
   return (
     <div className="space-y-8 max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">🏆 Leaderboard</h1>
-        <p className="text-sm text-gray-400 mt-1">
+        <h1 className="text-2xl font-bold text-white dark:text-gray-100">🏆 Leaderboard</h1>
+        <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">
           Top cyclists ranked by distance, elevation, and activities
         </p>
       </div>
 
       {/* Leaderboard Table */}
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-gray-900 dark:bg-gray-800 dark:border-gray-700 border border-gray-800 rounded-xl p-6 transition-colors duration-200">
         <Leaderboard users={mockLeaderboardData} />
       </section>
 
       {/* Stats Summary */}
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-base font-semibold text-white mb-4">Community Stats</h2>
+      <section className="bg-gray-900 dark:bg-gray-800 dark:border-gray-700 border border-gray-800 rounded-xl p-6 transition-colors duration-200">
+        <h2 className="text-base font-semibold text-white dark:text-gray-100 mb-4 transition-colors duration-200">Community Stats</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-gray-800/50 rounded-lg p-4">
+          <div className="bg-gray-800/50 dark:bg-gray-700/30 rounded-lg p-4 transition-colors duration-200">
             <div className="text-2xl mb-1">🚴</div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-white dark:text-gray-100 transition-colors duration-200">
               {avgDistance.toFixed(1)}
             </div>
-            <div className="text-xs text-gray-400">Avg Distance (km)</div>
+            <div className="text-xs text-gray-400 dark:text-gray-400">Avg Distance (km)</div>
           </div>
-          <div className="bg-gray-800/50 rounded-lg p-4">
+          <div className="bg-gray-800/50 dark:bg-gray-700/30 rounded-lg p-4 transition-colors duration-200">
             <div className="text-2xl mb-1">⛰️</div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-white dark:text-gray-100 transition-colors duration-200">
               {avgElevation.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
             </div>
-            <div className="text-xs text-gray-400">Avg Elevation (m)</div>
+            <div className="text-xs text-gray-400 dark:text-gray-400">Avg Elevation (m)</div>
           </div>
-          <div className="bg-gray-800/50 rounded-lg p-4">
+          <div className="bg-gray-800/50 dark:bg-gray-700/30 rounded-lg p-4 transition-colors duration-200">
             <div className="text-2xl mb-1">📊</div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-white dark:text-gray-100 transition-colors duration-200">
               {avgActivities.toFixed(1)}
             </div>
-            <div className="text-xs text-gray-400">Avg Activities</div>
+            <div className="text-xs text-gray-400 dark:text-gray-400">Avg Activities</div>
           </div>
         </div>
       </section>

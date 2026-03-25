@@ -179,8 +179,8 @@ export default function ElevationProfile({
 
   if (!stats) {
     return (
-      <div className={`bg-gray-900 rounded-xl p-6 ${className}`}>
-        <p className="text-gray-500 text-sm">No track data available</p>
+      <div className={`bg-gray-900 dark:bg-gray-800 rounded-xl p-6 ${className}`}>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">No track data available</p>
       </div>
     );
   }

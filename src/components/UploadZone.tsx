@@ -106,10 +106,10 @@ export default function UploadZone({ onActivityAdded }: UploadZoneProps) {
         aria-label="Upload GPX or FIT file"
         className={`
           border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 dark:focus:ring-offset-gray-800
           ${isDragging
             ? "border-blue-500 bg-blue-500/10"
-            : "border-gray-700 hover:border-gray-500 hover:bg-gray-800/30"
+            : "border-gray-700 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 hover:bg-gray-800/30 dark:hover:bg-gray-700/30"
           }
         `}
       >
@@ -122,13 +122,13 @@ export default function UploadZone({ onActivityAdded }: UploadZoneProps) {
         />
         <div className="text-3xl mb-2">{isUploading ? "⏳" : "📁"}</div>
         {isUploading ? (
-          <p className="text-sm text-gray-400">Uploading and parsing…</p>
+          <p className="text-sm text-gray-400 dark:text-gray-400">Uploading and parsing…</p>
         ) : (
           <>
-            <p className="text-sm text-gray-300 font-medium">
+            <p className="text-sm text-gray-300 dark:text-gray-200 font-medium transition-colors duration-200">
               Drop a GPX or FIT file here
             </p>
-            <p className="text-xs text-gray-500 mt-1">or click to browse</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors duration-200">or click to browse</p>
           </>
         )}
       </div>
@@ -136,8 +136,8 @@ export default function UploadZone({ onActivityAdded }: UploadZoneProps) {
         <p
           className={`text-xs px-3 py-2 rounded-lg ${
             lastResult.startsWith("✓")
-              ? "bg-green-900/30 text-green-400 border border-green-800"
-              : "bg-red-900/30 text-red-400 border border-red-800"
+              ? "bg-green-900/30 dark:bg-green-900/50 text-green-400 dark:text-green-300 border border-green-800 dark:border-green-700"
+              : "bg-red-900/30 dark:bg-red-900/50 text-red-400 dark:text-red-300 border border-red-800 dark:border-red-700"
           }`}
         >
           {lastResult}
